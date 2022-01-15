@@ -1,0 +1,85 @@
+---
+- name: gokkecamdk
+  hosts: all
+  tasks:
+    - name: install requirements
+      apt: 
+        name: 
+        - nginx 
+        - libnginx-mod-rtmp
+        - ffmpeg
+        update_cache: true
+        state: present
+
+    - name: copy nginx.conf
+      copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify: "restart web services"
+
+    - name: copy ffmpeg service
+      copy:
+        src: ffmpeg-rtp-receive.service
+        dest: /etc/systemd/system/ffmpeg-rtp-receive.service
+      notify: "restart ffmpeg"
+
+    - name: enable ffmpeg rtp-receive
+      systemd:
+        name: ffmpeg-rtp-receive.service
+        enabled: true
+      
+    - name: copy index.html
+      copy:
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
+
+    - name: copy ensure-hls-directory service
+      copy:
+        src: ensure-hls-directory.service
+        dest: /etc/systemd/system/ensure-hls-directory.service
+
+    - name: enable ensure-hls-directory service
+      systemd:
+        name: ensure-hls-directory.service
+        daemon_reload: true
+        enabled: true
+
+    - name: Allow ssh traffic
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow web traffic
+      community.general.ufw:
+        rule: allow
+        name: Nginx HTTP
+    
+    - name: Allow rtp stream
+      community.general.ufw:
+        rule: allow
+        comment: rtp stream
+        proto: udp
+        from_ip: "{{ lookup('env', 'GC_FROM') }}"
+        port: 1234:1240
+
+    - name: Deny anything else
+      community.general.ufw:
+        state: enabled
+        policy: deny
+  
+  roles:
+    - name: jnv.unattended-upgrades
+      unattended_automatic_reboot: yes
+  
+  handlers:
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
+    listen: "restart web services"
+  - name: Restart ffmpeg
+    systemd:
+      name: ffmpeg-rtp-receive
+      state: restarted
+      daemon_reload: true
+    listen: "restart ffmpeg"

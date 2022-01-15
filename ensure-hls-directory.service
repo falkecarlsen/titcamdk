@@ -1,0 +1,10 @@
+[Unit]
+Description=Ensure HLS directory exists
+Before=nginx.service
+
+[Service]
+Type=oneshot
+ExecStart=mkdir -p /run/hls/tv
+
+[Install]
+WantedBy=multi-user.target
