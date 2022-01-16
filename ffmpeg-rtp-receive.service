@@ -3,6 +3,7 @@ Description=ffmpeg rtp receiver
 After=nginx.service
 
 [Service]
+DynamicUser=yes
 Restart=always
 ExecStart=/usr/bin/ffmpeg \
     -protocol_whitelist file,udp,rtp,crypto \
