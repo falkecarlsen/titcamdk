@@ -9,7 +9,8 @@ ExecStart=/usr/bin/ffmpeg \
     -protocol_whitelist file,udp,rtp,crypto \
     -buffer_size 250k \
     -i udp://0.0.0.0:1234 \
-    -vcodec h264 -preset veryfast -vf scale=-1:720 -acodec aac \
+    -vcodec h264 -preset veryfast -vf scale=-1:720 -pix_fmt yuv420p \
+    -acodec aac \
     -f flv rtmp://127.0.0.1/live/gokkecam
 
 [Install]
