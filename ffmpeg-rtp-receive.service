@@ -9,7 +9,9 @@ ExecStart=/usr/bin/ffmpeg \
     -protocol_whitelist file,udp,rtp,crypto \
     -buffer_size 250k \
     -i udp://0.0.0.0:1234 \
-    -vcodec h264 -preset veryfast -vf scale=-1:720 -pix_fmt yuv420p \
+    -filter_complex "[0:a]aformat=channel_layouts=mono,showwaves=s=200x120:scale=sqrt:mode=line:colors=white[sw];[0]scale=-1:720[v];[v][sw]overlay=1000:30[v]" \
+    -map "[v]" -map 0:a \
+    -vcodec h264 -preset veryfast -pix_fmt yuv420p \
     -acodec aac \
     -f flv rtmp://127.0.0.1/live/gokkecam
 
